@@ -27,9 +27,6 @@ public class SaleController {
     private ConcertRepository concertRepository;
 
     @Autowired
-    private SeatSaleRepository seatSaleRepository;
-
-    @Autowired
     private SaleRepository saleRepository;
 
     @PostMapping(path="/add")
