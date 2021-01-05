@@ -1,9 +1,7 @@
 package app.service;
 
-import app.model.Concert;
-import app.model.Hall;
-import app.model.Sale;
-import app.model.SeatSale;
+import app.model.*;
+import app.repos.CheckDataRepository;
 import app.repos.ConcertRepository;
 import app.repos.SaleRepository;
 import app.repos.SeatSaleRepository;
@@ -15,6 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.sql.Time;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +30,9 @@ public class SaleService {
     private final MyThreadPool<String> threadPool = new MyThreadPool<String>(5);
 
     private final Thread checkThread = new Thread(new CheckWorker());
+
+    @Autowired
+    private CheckDataRepository checkDataRepository;
 
     @PostConstruct
     void runCheck(){
@@ -58,30 +60,44 @@ public class SaleService {
         public void run() {
             while(true) {
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 lock.lock();
                 for(Concert c:concertRepository.findAll())
-                    updateConcertTotalAmount(c);
+                    tryUpdateConcertTotalAmount(c);
 
                 lock.unlock();
             }
         }
     }
 
-    private void updateConcertTotalAmount(Concert concert){
+    private String updateConcertTotalAmount(Concert concert, BigDecimal newTotalAmount){
+        if(!concert.getTotalAmount().equals(newTotalAmount)) {
+            concert.setTotalAmount(newTotalAmount);
+            concertRepository.save(concert);
+            return "Incorrect, TOTAL AMOUNT CHANGED OF: " + concert.toString() + " TO " + newTotalAmount.toString() + "FOR: " + concert.getTitle();
+        } else {
+            return "Correct";
+        }
+
+    }
+
+
+    private void tryUpdateConcertTotalAmount(Concert concert){
         List<Sale> sales = saleRepository.findSalesByConcert(concert);
         BigDecimal sum = new BigDecimal(0);
         for(Sale s : sales)
             sum = sum.add(s.getAmount());
 
-        if(!concert.getTotalAmount().equals(sum)) {
-            System.out.println("TOTAL AMOUNT CHANGED OF: " +concert.toString() + " TO " + sum.toString());
-            concert.setTotalAmount(sum);
-            concertRepository.save(concert);
-        }
+        CheckData checkData = new CheckData();
+        checkData.setDate(new Date(Calendar.getInstance().getTime().getTime()));
+        checkData.setTime(new Time(Calendar.getInstance().getTime().getTime()));
+
+        String response = updateConcertTotalAmount(concert, sum);
+        checkData.setResponse(response);
+        checkDataRepository.save(checkData);
     }
 
     private class SaleWorker implements Callable<String> {
@@ -99,7 +115,7 @@ public class SaleService {
 
             Optional<Concert> concert = concertRepository.findById(concertId);
             if(!concert.isPresent()) {
-                return "Could not save. Concert was not found";
+                return "Could not save. Concert was not found: ";
             }
 
             //TODO: Change lock on all the Service to lock on each Concert
@@ -107,7 +123,7 @@ public class SaleService {
 
             if(findOneInRepo(concert.get(), seats)){
                 lock.unlock();
-                return "Could Not Save. Seats are already taken.";
+                return "Could Not Save. Seats are already taken in " + concert.get().getTitle() + ".";
             }
 
             Sale sale = new Sale();
@@ -127,7 +143,7 @@ public class SaleService {
 
             lock.unlock();
 
-            return "Saved";
+            return "Saved. Concert: " + concert.get().getTitle();
         }
     }
 

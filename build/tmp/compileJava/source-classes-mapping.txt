@@ -22,6 +22,10 @@ app/repos/ConcertRepository.java
  app.repos.ConcertRepository
 app/controller/ConcertController.java
  app.controller.ConcertController
+app/repos/CheckDataRepository.java
+ app.repos.CheckDataRepository
+app/model/CheckData.java
+ app.model.CheckData
 app/service/SaleService.java
  app.service.SaleService
  app.service.SaleService$1
