@@ -8,6 +8,8 @@ import app.repos.SaleRepository;
 import app.repos.SeatSaleRepository;
 import app.service.SaleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,8 @@ import java.sql.Date;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 @Controller
 @CrossOrigin
@@ -24,22 +28,15 @@ public class SaleController {
     private SaleService saleService;
 
     @Autowired
-    private ConcertRepository concertRepository;
-
-    @Autowired
     private SaleRepository saleRepository;
 
     @PostMapping(path="/add")
     public @ResponseBody
     String addSale (@RequestParam(value="concert", required = false) Long concertId
             , @RequestParam(value="num", required = false) Long numSeats
-            , @RequestParam(value="seat", required = false) List<Long> seats) {
+            , @RequestParam(value="seat", required = false) List<Long> seats) throws ExecutionException, InterruptedException {
 
-        Optional<Concert> concert = concertRepository.findById(concertId);
-        if(!concert.isPresent())
-            return "Could not save. Concert was not found";
-
-        return saleService.addSale(concert.get(), numSeats, seats);
+        return saleService.addSale(concertId, numSeats, seats).get();
     }
 
     @GetMapping(path="/all")

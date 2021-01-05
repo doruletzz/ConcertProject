@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 @Configuration
 @Component
 public interface ConcertRepository extends JpaRepository<Concert, Long> {
+
 }
