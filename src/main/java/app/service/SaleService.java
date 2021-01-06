@@ -11,12 +11,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -24,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class SaleService {
-    //TODO: CHANGE from single lock to list of locks for each Concert
     private final ReentrantLock lock = new ReentrantLock();
 
     private final MyThreadPool<String> threadPool = new MyThreadPool<String>(5);
@@ -54,23 +52,50 @@ public class SaleService {
         return !seatSaleRepository.findAllByNrSeats(concert, seats).isEmpty();
     }
 
+    private final Dictionary<Long, ReentrantLock> lockDictionary = new Hashtable<>();
+
+    private void lockConcert(Concert concert){
+        lock.lock();
+        if (lockDictionary.get(concert.getIdShow()) != null){
+            lockDictionary.get(concert.getIdShow()).lock();
+        } else {
+            lockDictionary.put(concert.getIdShow(), new ReentrantLock());
+            lockDictionary.get(concert.getIdShow()).lock();
+        }
+        lock.unlock();
+    }
+
+    private void unlockConcert(Concert concert){
+        lock.lock();
+        if (lockDictionary.get(concert.getIdShow()) != null)
+            lockDictionary.get(concert.getIdShow()).unlock();
+        lock.unlock();
+    }
+
     private class CheckWorker implements Runnable{
+        private final Long seconds = 5L;
 
         @Override
         public void run() {
             while(true) {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(1000 * seconds);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                lock.lock();
+                System.out.println("Check Worker");
+
                 for(Concert c:concertRepository.findAll())
                     tryUpdateConcertTotalAmount(c);
 
-                lock.unlock();
             }
         }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        threadPool.shutdown();
+        System.out.println("Callback triggered - @PreDestroy.");
     }
 
     private String updateConcertTotalAmount(Concert concert, BigDecimal newTotalAmount){
@@ -86,6 +111,9 @@ public class SaleService {
 
 
     private void tryUpdateConcertTotalAmount(Concert concert){
+        lockConcert(concert);
+//        lock.lock();
+
         List<Sale> sales = saleRepository.findSalesByConcert(concert);
         BigDecimal sum = new BigDecimal(0);
         for(Sale s : sales)
@@ -98,6 +126,9 @@ public class SaleService {
         String response = updateConcertTotalAmount(concert, sum);
         checkData.setResponse(response);
         checkDataRepository.save(checkData);
+
+//        lock.unlock();
+        unlockConcert(concert);
     }
 
     private class SaleWorker implements Callable<String> {
@@ -112,17 +143,19 @@ public class SaleService {
 
         @Override
         public String call(){
+            System.out.println("Sale Worker");
 
             Optional<Concert> concert = concertRepository.findById(concertId);
             if(!concert.isPresent()) {
                 return "Could not save. Concert was not found: ";
             }
 
-            //TODO: Change lock on all the Service to lock on each Concert
-            lock.lock();
+//            lock.lock();
+            lockConcert(concert.get());
 
             if(findOneInRepo(concert.get(), seats)){
-                lock.unlock();
+//                lock.unlock();
+                unlockConcert(concert.get());
                 return "Could Not Save. Seats are already taken in " + concert.get().getTitle() + ".";
             }
 
@@ -141,7 +174,9 @@ public class SaleService {
                 seatSaleRepository.save(ss);
             }
 
-            lock.unlock();
+
+//            lock.unlock();
+            unlockConcert(concert.get());
 
             return "Saved. Concert: " + concert.get().getTitle();
         }
@@ -149,7 +184,6 @@ public class SaleService {
 
     @Async
     public Future<String> addSale(Long concertId, Long numSeats, List<Long> seats) throws ExecutionException, InterruptedException {
-        //TODO: Create Check Entity for persitance of each operation and it's result
         return threadPool.execute(new SaleWorker(concertId,seats));
 
     }

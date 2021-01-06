@@ -30,7 +30,6 @@ public class MyThreadPool<T> {
         }
     }
 
-    //TODO: RETURN FUTURE/COMPLETABLE FUTURE
     @Async
     public Future<T> execute(Callable<T> task) {
         //monitor
@@ -72,6 +71,7 @@ public class MyThreadPool<T> {
     public void shutdown() {
         System.out.println("Shutting down thread pool, bye");
         for (int i = 0; i < size; i++) {
+
             workers.set(i, null);
         }
     }

@@ -36,6 +36,9 @@ public class SaleController {
     @Autowired
     private SaleRepository saleRepository;
 
+    @Autowired
+    private SeatSaleRepository seatSaleRepository;
+
     @PostMapping(path="/add")
     public @ResponseBody
     String addSale (@RequestParam(value="concert", required = false) Long concertId
@@ -49,6 +52,12 @@ public class SaleController {
         checkData.setResponse(response);
         checkDataRepository.save(checkData);
         return response;
+    }
+
+    @GetMapping(path="/all_sales")
+    public @ResponseBody Iterable<SeatSale> getAllSeatSales(@RequestParam(value="concert", required = false) Long concertId) {
+        // This returns a JSON or XML with the users
+        return seatSaleRepository.findAllByConcertId(concertId);
     }
 
     @GetMapping(path="/all")

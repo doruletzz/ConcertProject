@@ -1,13 +1,13 @@
 app/model/Sale.java
  app.model.Sale
+app/model/CheckData.java
+ app.model.CheckData
+app/repos/HallRepository.java
+ app.repos.HallRepository
 app/utils/MyThreadPool.java
  app.utils.MyThreadPool
  app.utils.MyThreadPool$1
  app.utils.MyThreadPool$WorkerThread
-app/repos/HallRepository.java
- app.repos.HallRepository
-app/repos/SeatSaleRepository.java
- app.repos.SeatSaleRepository
 app/model/Hall.java
  app.model.Hall
 app/repos/SaleRepository.java
@@ -24,13 +24,13 @@ app/controller/ConcertController.java
  app.controller.ConcertController
 app/repos/CheckDataRepository.java
  app.repos.CheckDataRepository
-app/model/CheckData.java
- app.model.CheckData
 app/service/SaleService.java
  app.service.SaleService
  app.service.SaleService$1
  app.service.SaleService$CheckWorker
  app.service.SaleService$SaleWorker
+app/repos/SeatSaleRepository.java
+ app.repos.SeatSaleRepository
 app/Application.java
  app.Application
 app/controller/SaleController.java
