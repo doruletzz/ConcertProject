@@ -12,7 +12,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackageClasses = {SaleRepository.class, ConcertRepository.class, SeatSaleRepository.class, HallRepository.class})
 //@ComponentScan(basePackageClasses = MainController.class)
 public class Application {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         SpringApplication.run(Application.class, args);
     }
+
+
 }
