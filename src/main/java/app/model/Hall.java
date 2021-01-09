@@ -23,10 +23,12 @@ public class Hall {
 
     @JsonIgnoreProperties
     @OneToMany(fetch = FetchType.LAZY, mappedBy="hall")
+    @JsonIdentityReference(alwaysAsId = true)
     private Set<Sale> sales;
 
     @JsonIgnoreProperties
     @OneToMany(fetch = FetchType.LAZY, mappedBy="hall")
+    @JsonIdentityReference(alwaysAsId = true)
     private Set<Concert> concerts;
 
     public Hall() {
@@ -48,8 +50,6 @@ public class Hall {
         this.nrSeats = nrSeats;
     }
 
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    @OneToMany(fetch = FetchType.LAZY, mappedBy="hall")
     public Set<Sale> getSales() {
         return sales;
     }
@@ -58,8 +58,6 @@ public class Hall {
         this.sales = sales;
     }
 
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    @OneToMany(fetch = FetchType.LAZY, mappedBy="hall")
     public Set<Concert> getConcerts() {
         return concerts;
     }

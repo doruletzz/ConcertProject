@@ -14,7 +14,6 @@ import java.util.Set;
 //Clasa Vanzare
 @Entity
 @Component
-@JsonSerialize
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "idSale"
@@ -28,10 +27,12 @@ public class Sale {
 
     @JsonManagedReference
     @OneToMany(fetch = FetchType.LAZY, mappedBy="sale")
+    @JsonIdentityReference(alwaysAsId = true)
     private Set<SeatSale> seatSales;
 
     @JsonIgnoreProperties
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIdentityReference(alwaysAsId = true)
     private Concert concert;
 
     private Date date;
@@ -44,6 +45,7 @@ public class Sale {
 
     @JsonBackReference
     @ManyToOne
+    @JsonIdentityReference(alwaysAsId = true)
     private Hall hall;
 
     public Long getIdSale() {
@@ -52,14 +54,6 @@ public class Sale {
 
     public void setIdSale(Long idSale) {
         this.idSale = idSale;
-    }
-
-    public Concert getShow() {
-        return concert;
-    }
-
-    public void setShow(Concert concert) {
-        this.concert = concert;
     }
 
     public Date getDate() {
@@ -78,8 +72,6 @@ public class Sale {
         this.seatSales = seatSales;
     }
 
-    @JsonIgnoreProperties
-    @ManyToOne(fetch = FetchType.LAZY)
     public Concert getConcert() {
         return concert;
     }

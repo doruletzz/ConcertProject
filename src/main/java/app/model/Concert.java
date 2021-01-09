@@ -13,7 +13,6 @@ import java.util.Set;
 //Clasa Spectacol
 @Entity
 @Component
-@JsonSerialize
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "idShow"
@@ -29,6 +28,7 @@ public class Concert {
 
     @JsonIgnoreProperties
     @OneToMany(fetch = FetchType.LAZY, mappedBy="concert")
+    @JsonIdentityReference(alwaysAsId = true)
     private Set<Sale> sales;
 
     public Concert() {
@@ -37,6 +37,7 @@ public class Concert {
 //    @JsonBackReference
     @JsonIgnoreProperties
     @ManyToOne
+    @JsonIdentityReference(alwaysAsId = true)
     private Hall hall;
 
     public Long getIdShow() {
@@ -71,8 +72,7 @@ public class Concert {
         this.title = title;
     }
 
-    @JsonIgnoreProperties
-    @OneToMany(fetch = FetchType.LAZY, mappedBy="concert")
+
     public Set<Sale> getSales() {
         return sales;
     }

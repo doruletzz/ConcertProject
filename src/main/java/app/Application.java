@@ -16,8 +16,8 @@ public class Application {
     public static void main(String[] args) throws InterruptedException {
         ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
         System.out.println("Working for 2 min...");
-//        Thread.sleep(1000 * 60 * 2);
+        Thread.sleep(1000 * 60 * 2);
         System.out.println("Closing application");
-//        ctx.close();
+        ctx.close();
     }
 }
